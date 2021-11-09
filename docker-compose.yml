@@ -16,7 +16,8 @@ services:
       backend:
           ipv4_address: 192.168.18.5
     ports:
-      - "8080:80"
+      - "8080:80/tcp"
+      - "1936:1936"
     expose:
       - "80"
 
@@ -27,6 +28,8 @@ services:
       - '8500:8500'
       - '8600:8600/tcp'
       - '8600:8600/udp'
+    expose: 
+      - "8600"
     command: agent -dev -client=0.0.0.0  -bind=192.168.18.10  -bootstrap-expect 1
     networks:
       backend:
