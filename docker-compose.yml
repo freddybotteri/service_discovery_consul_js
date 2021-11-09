@@ -1,0 +1,83 @@
+
+version: '3.8'
+
+services:
+
+
+  haproxy:
+    image: haproxy:lts-alpine
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg  # ruta del archivo de configuración de haproxy
+    depends_on: 
+      - consul
+      - node1
+      - node2
+    networks:
+      backend:
+          ipv4_address: 192.168.18.5
+    ports:
+      - "8080:80"
+    expose:
+      - "80"
+
+  consul:
+    image: consul:1.9.3
+    container_name: containerConsul
+    ports:
+      - '8500:8500'
+      - '8600:8600/tcp'
+      - '8600:8600/udp'
+    command: agent -dev -client=0.0.0.0  -bind=192.168.18.10  -bootstrap-expect 1
+    networks:
+      backend:
+          ipv4_address: 192.168.18.10
+
+  node1:
+    build:
+      dockerfile: Dockerfile
+      context: "./node"
+    container_name: containerNode1
+    depends_on: 
+      - consul
+    volumes:
+      - /app/node_modules
+      - ./node:/app
+    command: node index.js 3000
+    environment:
+      HOST: containerConsul
+      IP: 192.168.18.11
+    ports:
+      - '3000:3000'
+    networks:
+      backend:
+        ipv4_address: 192.168.18.11
+
+  node2:
+    build:
+      dockerfile: Dockerfile
+      context: "./node"
+    container_name: containerNode2
+    depends_on: 
+      - consul
+    volumes:
+      - /app/node_modules
+      - ./node:/app
+    command: node index.js 3001
+    environment:
+      HOST: containerConsul
+      IP: 192.168.18.12
+    ports:
+       - '3001:3001'
+    networks:
+      backend:
+        ipv4_address: 192.168.18.12
+
+networks:
+  backend:
+    driver: overlay
+    ipam:
+      config:
+        - subnet: 192.168.18.0/24
+          gateway: 192.168.18.2
+
+
