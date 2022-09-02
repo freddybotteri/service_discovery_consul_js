@@ -17,7 +17,7 @@ services:
           ipv4_address: 192.168.18.5
     ports:
       - "8080:80/tcp"
-      - "1936:1936"
+      - "1900:1936"
     expose:
       - "80"
 
@@ -30,7 +30,7 @@ services:
       - '8600:8600/udp'
     expose: 
       - "8600"
-    command: agent -dev -client=0.0.0.0  -bind=192.168.18.10  -bootstrap-expect 1
+    command: agent -dev  -bind=192.168.18.10  -client=0.0.0.0  -bootstrap-expect 1
     networks:
       backend:
           ipv4_address: 192.168.18.10
@@ -74,6 +74,27 @@ services:
     networks:
       backend:
         ipv4_address: 192.168.18.12
+
+
+  node3:
+    build:
+      dockerfile: Dockerfile
+      context: "./node"
+    container_name: containerNode3
+    depends_on: 
+      - consul
+    volumes:
+      - /app/node_modules
+      - ./node:/app
+    command: node index.js 3002
+    environment:
+      HOST: containerConsul
+      IP: 192.168.18.13
+    ports:
+       - '3002:3002'
+    networks:
+      backend:
+        ipv4_address: 192.168.18.13
 
 networks:
   backend:
